@@ -90,8 +90,10 @@ electron.ipcMain.on("openYoutubeCommentView", async (_, url) => {
           await speak(voice, `${nameElement.textContent}さんコメント  ${messageElement.textContent}`);
         }, 1000);
       }
-      await youtubeCommentViewWindow.webContents.executeJavaScript(executeJavaScript.toString());
-      await youtubeCommentViewWindow.webContents.executeJavaScript("executeJavaScript();");
+      await youtubeCommentViewWindow.webContents.executeJavaScript(
+        `var executeJavaScript = ${executeJavaScript.toString()};executeJavaScript();`,
+        true,
+      );
     }
   });
 
