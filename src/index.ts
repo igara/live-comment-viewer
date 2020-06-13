@@ -1,4 +1,3 @@
-/* eslint-disable no-inner-declarations */
 "use strict";
 
 import "./index.html";
@@ -31,8 +30,37 @@ const createMenuWindow = async () => {
   });
 };
 
+let youtubeCommentViewWindow: electron.BrowserWindow | null;
+
+let youtubeVolume = 0.5;
+electron.ipcMain.on("changeYoutubeVolume", async (_, volume) => {
+  if (volume == 0) {
+    youtubeVolume = volume;
+  } else {
+    youtubeVolume = volume / 100;
+  }
+
+  youtubeCommentViewWindow &&
+    (await youtubeCommentViewWindow.webContents.executeJavaScript(
+      `
+youtubeVolume = ${youtubeVolume};`,
+      true,
+    ));
+});
+
+let isYoutubeCommenter = false;
+electron.ipcMain.on("changeIsYoutubeCommenter", async (_, flag) => {
+  isYoutubeCommenter = flag;
+  youtubeCommentViewWindow &&
+    (await youtubeCommentViewWindow.webContents.executeJavaScript(
+      `
+isYoutubeCommenter = ${isYoutubeCommenter};`,
+      true,
+    ));
+});
+
 electron.ipcMain.on("openYoutubeCommentView", async (_, url) => {
-  const youtubeCommentViewWindow = new electron.BrowserWindow({
+  youtubeCommentViewWindow = new electron.BrowserWindow({
     width: 300,
     height: 900,
     transparent: true,
@@ -53,7 +81,7 @@ electron.ipcMain.on("openYoutubeCommentView", async (_, url) => {
         }
       `);
 
-      function executeJavaScript() {
+      const executeJavaScript = () => {
         const voice =
           window.speechSynthesis.getVoices().find(voice => {
             return voice.name === "Google　日本語";
@@ -64,6 +92,7 @@ electron.ipcMain.on("openYoutubeCommentView", async (_, url) => {
           speechSynthesisUtterance.voice = voice;
 
           const audio = new SpeechSynthesisUtterance(text);
+          audio.volume = youtubeVolume;
           window.speechSynthesis.speak(audio);
 
           return new Promise(resolve => {
@@ -87,11 +116,20 @@ electron.ipcMain.on("openYoutubeCommentView", async (_, url) => {
 
           if (!nameElement.textContent) return;
           if (!messageElement.textContent) return;
-          await speak(voice, `${nameElement.textContent}さんコメント  ${messageElement.textContent}`);
-        }, 1000);
-      }
+
+          if (isYoutubeCommenter) {
+            await speak(voice, `${nameElement.textContent}さんコメント  ${messageElement.textContent}`);
+          } else {
+            await speak(voice, messageElement.textContent);
+          }
+        }, 5000);
+      };
       await youtubeCommentViewWindow.webContents.executeJavaScript(
-        `var executeJavaScript = ${executeJavaScript.toString()};executeJavaScript();`,
+        `
+var isYoutubeCommenter = ${isYoutubeCommenter};
+var youtubeVolume = ${youtubeVolume};
+var executeJavaScript = ${executeJavaScript.toString()};
+executeJavaScript();`,
         true,
       );
     }
