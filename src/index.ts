@@ -63,6 +63,7 @@ electron.ipcMain.on("openYoutubeCommentView", async (_, url) => {
   youtubeCommentViewWindow = new electron.BrowserWindow({
     width: 300,
     height: 900,
+    alwaysOnTop: true,
     transparent: true,
     webPreferences: {
       nodeIntegration: true,
