@@ -77,7 +77,7 @@ electron.ipcMain.on("openYoutubeCommentView", async (_, url) => {
       await youtubeCommentViewWindow.webContents.insertCSS(/*css*/ `
         * {
           color: white !important;
-          text-shadow: 0.02em 0.02em 0.02em rgba(0,0,0,1);
+          text-shadow: 0.04em 0.04em 0.04em black;
           background: rgba(0, 0, 0, 0) !important;
         }
       `);
