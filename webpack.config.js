@@ -9,6 +9,8 @@ const ElectronReloadWebpackPlugin = createElectronReloadWebpackPlugin({
   path: "./",
 });
 
+const { TypedCssModulesPlugin } = require("typed-css-modules-webpack-plugin");
+
 const main = {
   mode: "development",
   target: "electron-main",
@@ -31,23 +33,12 @@ const main = {
       },
       { test: /\.node$/, loader: "node-loader" },
       {
-        test: /(chrome-cookies)$/i,
+        test: /.(html|vrm)$/i,
         use: [
           {
             loader: "file-loader",
             options: {
-              name: "[name]",
-            },
-          },
-        ],
-      },
-      {
-        test: /.(html)$/i,
-        use: [
-          {
-            loader: "file-loader",
-            options: {
-              name: "[name].[ext]",
+              name: "pages/[folder]/[name].[ext]",
             },
           },
         ],
@@ -71,10 +62,13 @@ const main = {
 const renderer = {
   mode: "development",
   target: "electron-renderer",
-  entry: path.join(__dirname, "src", "renderer", "index"),
+  entry: {
+    "index/index": path.join(__dirname, "src", "pages", "index", "index.tsx"),
+    "vrm/index": path.join(__dirname, "src", "pages", "vrm", "index.tsx"),
+  },
   output: {
-    filename: "index.js",
-    path: path.resolve(__dirname, "dist", "scripts"),
+    path: path.resolve(__dirname, "dist", "pages"),
+    filename: "[name].js",
   },
   resolve: {
     extensions: [".json", ".js", ".jsx", ".css", ".ts", ".tsx"],
@@ -87,6 +81,10 @@ const renderer = {
         include: [path.resolve(__dirname, "src"), path.resolve(__dirname, "node_modules")],
       },
       { test: /\.node$/, loader: "node-loader" },
+      {
+        test: /\.css$/i,
+        loaders: ["style-loader", "css-loader?modules"],
+      },
     ],
   },
   // プラグイン起動
@@ -94,6 +92,9 @@ const renderer = {
     ElectronReloadWebpackPlugin(),
     new webpack.ProvidePlugin({
       React: "react",
+    }),
+    new TypedCssModulesPlugin({
+      globPattern: "src/pages/**/*.css",
     }),
   ],
   devtool: "inline-source-map",

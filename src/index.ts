@@ -1,6 +1,8 @@
 "use strict";
 
-import "./index.html";
+import "./pages/index/index.html";
+import "./pages/vrm/igarashi.vrm";
+import "./pages/vrm/index.html";
 
 import * as electron from "electron";
 
@@ -23,7 +25,7 @@ const createMenuWindow = async () => {
     },
   });
 
-  menuWindow.loadURL(`file://${__dirname}/index.html`);
+  await menuWindow.loadURL(`file://${__dirname}/pages/index/index.html`);
 
   menuWindow.on("closed", () => {
     menuWindow = null;
@@ -70,7 +72,7 @@ electron.ipcMain.on("openYoutubeCommentView", async (_, url) => {
     },
   });
 
-  youtubeCommentViewWindow.loadURL(url);
+  await youtubeCommentViewWindow.loadURL(url);
 
   youtubeCommentViewWindow.webContents.on("did-finish-load", async () => {
     if (youtubeCommentViewWindow) {
@@ -137,9 +139,40 @@ executeJavaScript();`,
   });
 
   youtubeCommentViewWindow.on("closed", () => {
-    menuWindow = null;
+    youtubeCommentViewWindow = null;
   });
 });
+
+let vrmViewerWindow: electron.BrowserWindow | null;
+
+electron.ipcMain.on(
+  "openVRMViewer",
+  async (
+    _,
+    args: {
+      vrmBackgroundColor: string;
+      videoDeviceID: string;
+    },
+  ) => {
+    vrmViewerWindow = new electron.BrowserWindow({
+      width: 320,
+      height: 240,
+      alwaysOnTop: true,
+      transparent: true,
+      webPreferences: {
+        nodeIntegration: true,
+      },
+    });
+
+    await vrmViewerWindow.loadURL(
+      `file://${__dirname}/pages/vrm/index.html?vrmBackgroundColor=${args.vrmBackgroundColor}&videoDeviceID=${args.videoDeviceID}`,
+    );
+
+    vrmViewerWindow.on("closed", () => {
+      vrmViewerWindow = null;
+    });
+  },
+);
 
 // Quit when all windows are closed.
 electron.app.on("window-all-closed", () => {

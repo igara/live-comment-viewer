@@ -1,0 +1,12 @@
+.main {
+  background: rgba(0, 0, 0, 0);
+}
+
+.vrm {
+  width: 320px;
+}
+
+.video {
+  width: 320px;
+  display: none;
+}
