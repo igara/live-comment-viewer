@@ -72,7 +72,7 @@ electron.ipcMain.on("openYoutubeCommentView", async (_, url) => {
     },
   });
 
-  await youtubeCommentViewWindow.loadURL(url);
+  youtubeCommentViewWindow.loadURL(url);
 
   youtubeCommentViewWindow.webContents.on("did-finish-load", async () => {
     if (youtubeCommentViewWindow) {
