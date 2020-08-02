@@ -50,13 +50,24 @@ youtubeVolume = ${youtubeVolume};`,
     ));
 });
 
-let isYoutubeCommenter = false;
-electron.ipcMain.on("changeIsYoutubeCommenter", async (_, flag) => {
-  isYoutubeCommenter = flag;
+let isYoutubeCommenterVoice = false;
+electron.ipcMain.on("changeIsYoutubeCommenterVoice", async (_, flag) => {
+  isYoutubeCommenterVoice = flag;
   youtubeCommentViewWindow &&
     (await youtubeCommentViewWindow.webContents.executeJavaScript(
       `
-isYoutubeCommenter = ${isYoutubeCommenter};`,
+isYoutubeCommenterVoice = ${isYoutubeCommenterVoice};`,
+      true,
+    ));
+});
+
+let isYoutubeCommenterDisp = false;
+electron.ipcMain.on("changeIsYoutubeCommenterDisp", async (_, flag) => {
+  isYoutubeCommenterDisp = flag;
+  youtubeCommentViewWindow &&
+    (await youtubeCommentViewWindow.webContents.executeJavaScript(
+      `
+isYoutubeCommenterDisp = ${isYoutubeCommenterDisp};`,
       true,
     ));
 });
@@ -83,6 +94,22 @@ electron.ipcMain.on("openYoutubeCommentView", async (_, url) => {
           background: rgba(0, 0, 0, 0) !important;
         }
       `);
+      if (isYoutubeCommenterDisp) {
+        await youtubeCommentViewWindow.webContents.insertCSS(/*css*/ `
+          yt-live-chat-text-message-renderer yt-live-chat-author-chip,
+          yt-live-chat-text-message-renderer yt-img-shadow {
+            display: initial !important;
+          }
+        `);
+
+      } else {
+        await youtubeCommentViewWindow.webContents.insertCSS(/*css*/ `
+          yt-live-chat-text-message-renderer yt-live-chat-author-chip,
+          yt-live-chat-text-message-renderer yt-img-shadow {
+            display: none !important;
+          }
+        `);
+      }
 
       const executeJavaScript = () => {
         const voice =
@@ -120,7 +147,7 @@ electron.ipcMain.on("openYoutubeCommentView", async (_, url) => {
           if (!nameElement.textContent) return;
           if (!messageElement.textContent) return;
 
-          if (isYoutubeCommenter) {
+          if (isYoutubeCommenterVoice) {
             await speak(voice, `${nameElement.textContent}さんコメント  ${messageElement.textContent}`);
           } else {
             await speak(voice, messageElement.textContent);
@@ -129,7 +156,8 @@ electron.ipcMain.on("openYoutubeCommentView", async (_, url) => {
       };
       await youtubeCommentViewWindow.webContents.executeJavaScript(
         `
-var isYoutubeCommenter = ${isYoutubeCommenter};
+var isYoutubeCommenterVoice = ${isYoutubeCommenterVoice};
+var isYoutubeCommenterDisp = ${isYoutubeCommenterDisp};
 var youtubeVolume = ${youtubeVolume};
 var executeJavaScript = ${executeJavaScript.toString()};
 executeJavaScript();`,

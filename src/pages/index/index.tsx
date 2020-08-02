@@ -4,7 +4,8 @@ import * as ReactDOM from "react-dom";
 
 const IndexComponent = () => {
   const [youtubeURL, setYoutubeURL] = React.useState("");
-  const [isYoutubeCommenter, setIsYoutubeCommenter] = React.useState(false);
+  const [isYoutubeCommenterVoice, setIsYoutubeCommenterVoice] = React.useState(false);
+  const [isYoutubeCommenterDisp, setIsYoutubeCommenterDisp] = React.useState(false);
   const vrmBackgroundColors = [
     { name: "透明", value: "rgba(0, 0, 0, 0)" },
     { name: "緑", value: "greenyellow" },
@@ -45,8 +46,17 @@ const IndexComponent = () => {
       <input
         type="checkbox"
         onChange={() => {
-          electron.ipcRenderer.send("changeIsYoutubeCommenter", Boolean(!isYoutubeCommenter));
-          setIsYoutubeCommenter(!isYoutubeCommenter);
+          electron.ipcRenderer.send("changeIsYoutubeCommenterVoice", Boolean(!isYoutubeCommenterVoice));
+          setIsYoutubeCommenterVoice(!isYoutubeCommenterVoice);
+        }}
+      />
+      <br />
+      投稿者名表示
+      <input
+        type="checkbox"
+        onChange={() => {
+          electron.ipcRenderer.send("changeIsYoutubeCommenterDisp", Boolean(!isYoutubeCommenterDisp));
+          setIsYoutubeCommenterDisp(!isYoutubeCommenterDisp);
         }}
       />
       <hr />
