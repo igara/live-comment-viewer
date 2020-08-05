@@ -202,6 +202,47 @@ electron.ipcMain.on(
   },
 );
 
+let webViewViewerWindow: electron.BrowserWindow | null;
+
+electron.ipcMain.on(
+  "openWebViewViewer",
+  async (
+    _,
+    args: {
+      webViewBackgroundColor: string;
+      webViewURL: string;
+    },
+  ) => {
+    webViewViewerWindow = new electron.BrowserWindow({
+      width: 600,
+      height: 600,
+      alwaysOnTop: true,
+      transparent: true,
+      webPreferences: {
+        nodeIntegration: true,
+      },
+    });
+  
+    webViewViewerWindow.loadURL(args.webViewURL);
+  
+    webViewViewerWindow.webContents.on("did-finish-load", async () => {
+      if (webViewViewerWindow) {
+        await webViewViewerWindow.webContents.insertCSS(/*css*/ `
+          * {
+            color: white !important;
+            text-shadow: 0.04em 0.04em 0.04em black;
+            background: ${args.webViewBackgroundColor} !important;
+          }
+        `);
+      }
+    });
+  
+    webViewViewerWindow.on("closed", () => {
+      webViewViewerWindow = null;
+    });
+  },
+);
+
 // Quit when all windows are closed.
 electron.app.on("window-all-closed", () => {
   // On macOS it is common for applications and their menu bar
