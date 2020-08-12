@@ -1,0 +1,43 @@
+.main {
+  width: 100%;
+  height: 100%
+}
+
+.setting {
+  height: 20%;
+  background: white;
+}
+
+.tableArea {
+  height: 80%;
+  overflow-y: scroll;
+}
+
+.table {
+  width: 100%;
+  font-size: 20px;
+  color: white !important;
+  text-shadow: 0.04em 0.04em 0.04em black;
+}
+
+.table img {
+  width: 30px;
+  height: 30px;
+}
+
+.table.displyUserName .snsImage,
+.table.displyUserName .userImage,
+.table.displyUserName .userName,
+.table.displyUserName .message {
+  display: initial;
+}
+
+.table.displyUserName .userName {
+  background: rgba(0, 204, 0, 0.5);
+}
+
+.table.hiddenUserName .snsImage,
+.table.hiddenUserName .userImage,
+.table.hiddenUserName .userName {
+  display: none;
+}

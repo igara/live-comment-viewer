@@ -4,8 +4,8 @@ import * as ReactDOM from "react-dom";
 
 const IndexComponent = () => {
   const [youtubeURL, setYoutubeURL] = React.useState("");
-  const [isYoutubeCommenterVoice, setIsYoutubeCommenterVoice] = React.useState(false);
-  const [isYoutubeCommenterDisp, setIsYoutubeCommenterDisp] = React.useState(false);
+  const [niconicoURL, setNiconicoURL] = React.useState("");
+
   const backgroundColors = [
     { name: "透明", value: "rgba(0, 0, 0, 0)" },
     { name: "緑", value: "greenyellow" },
@@ -32,36 +32,12 @@ const IndexComponent = () => {
     <main>
       <h1>live-comment-viewer</h1>
       <hr />
-      <h2>Youtube コメビュー</h2>
+      <h2>コメビュー</h2>
       <input onChange={e => setYoutubeURL(e.target.value)} placeholder="YoutubeのコメビューのURL" />
       <button onClick={() => electron.ipcRenderer.send("openYoutubeCommentView", youtubeURL)}>開く</button>
       <br />
-      音量
-      <input
-        type="range"
-        min={0}
-        max={100}
-        defaultValue={50}
-        onChange={e => electron.ipcRenderer.send("changeYoutubeVolume", Number(e.target.value))}
-      />
-      <br />
-      投稿者名読み上げ
-      <input
-        type="checkbox"
-        onChange={() => {
-          electron.ipcRenderer.send("changeIsYoutubeCommenterVoice", Boolean(!isYoutubeCommenterVoice));
-          setIsYoutubeCommenterVoice(!isYoutubeCommenterVoice);
-        }}
-      />
-      <br />
-      投稿者名表示
-      <input
-        type="checkbox"
-        onChange={() => {
-          electron.ipcRenderer.send("changeIsYoutubeCommenterDisp", Boolean(!isYoutubeCommenterDisp));
-          setIsYoutubeCommenterDisp(!isYoutubeCommenterDisp);
-        }}
-      />
+      <input onChange={e => setNiconicoURL(e.target.value)} placeholder="ニコニコのコメビューのURL" />
+      <button onClick={() => electron.ipcRenderer.send("openNiconicoCommentView", niconicoURL)}>開く</button>
       <hr />
       <h2>VRM Viewer</h2>
       <div>

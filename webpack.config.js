@@ -33,7 +33,7 @@ const main = {
       },
       { test: /\.node$/, loader: "node-loader" },
       {
-        test: /.(html|vrm)$/i,
+        test: /.(html|vrm|png)$/i,
         use: [
           {
             loader: "file-loader",
@@ -65,6 +65,7 @@ const renderer = {
   entry: {
     "index/index": path.join(__dirname, "src", "pages", "index", "index.tsx"),
     "vrm/index": path.join(__dirname, "src", "pages", "vrm", "index.tsx"),
+    "comment/index": path.join(__dirname, "src", "pages", "comment", "index.tsx"),
   },
   output: {
     path: path.resolve(__dirname, "dist", "pages"),

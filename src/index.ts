@@ -1,6 +1,9 @@
 "use strict";
 
 import "./pages/index/index.html";
+import "./pages/comment/index.html";
+import "./pages/comment/youtube.png";
+import "./pages/comment/niconico.png";
 import "./pages/vrm/igarashi.vrm";
 import "./pages/vrm/index.html";
 
@@ -32,52 +35,41 @@ const createMenuWindow = async () => {
   });
 };
 
-let youtubeCommentViewWindow: electron.BrowserWindow | null;
+let commentWindow: electron.BrowserWindow | null;
+electron.ipcMain.on("addComment", async (_, comment) => {
+  if (commentWindow) commentWindow.webContents.send("addComment", comment)
+});
 
-let youtubeVolume = 0.5;
-electron.ipcMain.on("changeYoutubeVolume", async (_, volume) => {
-  if (volume == 0) {
-    youtubeVolume = volume;
-  } else {
-    youtubeVolume = volume / 100;
+const createCommentView = async() => {
+  if(!commentWindow) {
+    commentWindow = new electron.BrowserWindow({
+      x: 300,
+      y: 0,
+      width: 300,
+      height: 900,
+      alwaysOnTop: true,
+      transparent: true,
+      webPreferences: {
+        nodeIntegration: true,
+      },
+    });
+    await commentWindow.loadURL(`file://${__dirname}/pages/comment/index.html`);
+    commentWindow.on("closed", () => {
+      commentWindow = null;
+    });
   }
+};
 
-  youtubeCommentViewWindow &&
-    (await youtubeCommentViewWindow.webContents.executeJavaScript(
-      `
-youtubeVolume = ${youtubeVolume};`,
-      true,
-    ));
-});
-
-let isYoutubeCommenterVoice = false;
-electron.ipcMain.on("changeIsYoutubeCommenterVoice", async (_, flag) => {
-  isYoutubeCommenterVoice = flag;
-  youtubeCommentViewWindow &&
-    (await youtubeCommentViewWindow.webContents.executeJavaScript(
-      `
-isYoutubeCommenterVoice = ${isYoutubeCommenterVoice};`,
-      true,
-    ));
-});
-
-let isYoutubeCommenterDisp = false;
-electron.ipcMain.on("changeIsYoutubeCommenterDisp", async (_, flag) => {
-  isYoutubeCommenterDisp = flag;
-  youtubeCommentViewWindow &&
-    (await youtubeCommentViewWindow.webContents.executeJavaScript(
-      `
-isYoutubeCommenterDisp = ${isYoutubeCommenterDisp};`,
-      true,
-    ));
-});
-
+let youtubeCommentViewWindow: electron.BrowserWindow | null;
 electron.ipcMain.on("openYoutubeCommentView", async (_, url) => {
+  await createCommentView();
+
   youtubeCommentViewWindow = new electron.BrowserWindow({
+    x: 0,
+    y: 0,
     width: 300,
-    height: 900,
+    height: 300,
     alwaysOnTop: true,
-    transparent: true,
     webPreferences: {
       nodeIntegration: true,
     },
@@ -87,78 +79,40 @@ electron.ipcMain.on("openYoutubeCommentView", async (_, url) => {
 
   youtubeCommentViewWindow.webContents.on("did-finish-load", async () => {
     if (youtubeCommentViewWindow) {
-      await youtubeCommentViewWindow.webContents.insertCSS(/*css*/ `
-        * {
-          color: white !important;
-          text-shadow: 0.04em 0.04em 0.04em black;
-          background: rgba(0, 0, 0, 0) !important;
-        }
-      `);
-      if (isYoutubeCommenterDisp) {
-        await youtubeCommentViewWindow.webContents.insertCSS(/*css*/ `
-          yt-live-chat-text-message-renderer yt-live-chat-author-chip,
-          yt-live-chat-text-message-renderer yt-img-shadow {
-            display: initial !important;
-          }
-        `);
-
-      } else {
-        await youtubeCommentViewWindow.webContents.insertCSS(/*css*/ `
-          yt-live-chat-text-message-renderer yt-live-chat-author-chip,
-          yt-live-chat-text-message-renderer yt-img-shadow {
-            display: none !important;
-          }
-        `);
-      }
-
       const executeJavaScript = () => {
-        const voice =
-          window.speechSynthesis.getVoices().find(voice => {
-            return voice.name === "Google　日本語";
-          }) || speechSynthesis.getVoices()[0];
+        const { ipcRenderer } = window.require("electron");
 
-        const speak = (voice: SpeechSynthesisVoice, text: string) => {
-          const speechSynthesisUtterance = new SpeechSynthesisUtterance();
-          speechSynthesisUtterance.voice = voice;
+        const commentElement = document.querySelector(
+          "yt-live-chat-item-list-renderer",
+        ) as HTMLElement;
+        new MutationObserver(records => {
+          records.forEach(record => {
+            Array.from(record.addedNodes).forEach(node => {
+              const element = node as any;
+              if (!element.querySelector) return;
 
-          const audio = new SpeechSynthesisUtterance(text);
-          audio.volume = youtubeVolume;
-          window.speechSynthesis.speak(audio);
+              const userImageElement = element.querySelector("yt-live-chat-text-message-renderer yt-img-shadow img") as HTMLImageElement;
+              const nameElement = element.querySelector("yt-live-chat-author-chip") as HTMLElement;
+              const messageElement = element.querySelector("#message") as HTMLElement;
 
-          return new Promise(resolve => {
-            audio.onend = resolve;
+              if (userImageElement && nameElement && messageElement) {
+                ipcRenderer.send("addComment", {
+                  sndImage: "youtube.png",
+                  userImage: userImageElement.src,
+                  userName: nameElement.textContent,
+                  message: messageElement.textContent
+                });
+              }
+            });
           });
-        };
-
-        let lastComment = "";
-
-        setInterval(async () => {
-          const lastCommentElement = document.querySelector(
-            "yt-live-chat-text-message-renderer:last-child",
-          ) as HTMLElement;
-          if (!lastCommentElement || !lastCommentElement.textContent) return;
-
-          if (lastComment === lastCommentElement.textContent) return;
-          lastComment = lastCommentElement.textContent;
-
-          const nameElement = lastCommentElement.querySelector("yt-live-chat-author-chip") as HTMLElement;
-          const messageElement = lastCommentElement.querySelector("#message") as HTMLElement;
-
-          if (!nameElement.textContent) return;
-          if (!messageElement.textContent) return;
-
-          if (isYoutubeCommenterVoice) {
-            await speak(voice, `${nameElement.textContent}さんコメント  ${messageElement.textContent}`);
-          } else {
-            await speak(voice, messageElement.textContent);
-          }
-        }, 5000);
+        }).observe(commentElement, {
+          attributes: true,
+          childList: true,
+          subtree: true
+        });
       };
       await youtubeCommentViewWindow.webContents.executeJavaScript(
         `
-var isYoutubeCommenterVoice = ${isYoutubeCommenterVoice};
-var isYoutubeCommenterDisp = ${isYoutubeCommenterDisp};
-var youtubeVolume = ${youtubeVolume};
 var executeJavaScript = ${executeJavaScript.toString()};
 executeJavaScript();`,
         true,
@@ -168,6 +122,67 @@ executeJavaScript();`,
 
   youtubeCommentViewWindow.on("closed", () => {
     youtubeCommentViewWindow = null;
+  });
+});
+
+let niconicoCommentViewWindow: electron.BrowserWindow | null;
+electron.ipcMain.on("openNiconicoCommentView", async (_, url) => {
+  await createCommentView();
+
+  niconicoCommentViewWindow = new electron.BrowserWindow({
+    x: 0,
+    y: 0,
+    width: 300,
+    height: 300,
+    alwaysOnTop: true,
+    webPreferences: {
+      nodeIntegration: true,
+    },
+  });
+
+  niconicoCommentViewWindow.loadURL(url);
+
+  niconicoCommentViewWindow.webContents.on("did-finish-load", async () => {
+    if (niconicoCommentViewWindow) {
+      const executeJavaScript = () => {
+        const { ipcRenderer } = window.require("electron");
+
+        const commentElement = document.querySelector("div[data-name='comment']") as HTMLElement;
+        new MutationObserver(records => {
+          records.forEach(record => {
+            Array.from(record.addedNodes).forEach(node => {
+              const element = node as any;
+              if (!element.querySelector) return;
+
+              const messageElement = element.querySelector("span[class*='___comment-text___']") as HTMLElement;
+
+              if (messageElement) {
+                ipcRenderer.send("addComment", {
+                  sndImage: "niconico.png",
+                  userImage: "",
+                  userName: "",
+                  message: messageElement.textContent
+                });
+              }
+            });
+          });
+        }).observe(commentElement, {
+          attributes: true,
+          childList: true,
+          subtree: true
+        });
+      };
+      await niconicoCommentViewWindow.webContents.executeJavaScript(
+        `
+var executeJavaScript = ${executeJavaScript.toString()};
+executeJavaScript();`,
+        true,
+      );
+    }
+  });
+
+  niconicoCommentViewWindow.on("closed", () => {
+    niconicoCommentViewWindow = null;
   });
 });
 
