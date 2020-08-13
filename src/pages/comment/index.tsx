@@ -10,12 +10,12 @@ type Comment = {
   message: string;
 };
 
-let commentVolume = 50;
-let isCommenterVoice = false;
-let isCommenterDisp = false;
-let isNewCommentDisp = false;
+let selectedCommentVolume = Number(localStorage.getItem("selectedCommentVolume") || 50);
+let isCommenterVoice = localStorage.getItem("isCommenterVoice") === "true";
+let isCommenterDisp = localStorage.getItem("isCommenterDisp") === "true";
+let isNewCommentDisp = localStorage.getItem("isNewCommentDisp") === "true";
 let lastComment = "";
-
+let commentVolume = selectedCommentVolume == 0 ? selectedCommentVolume : selectedCommentVolume / 100;
 const CommentComponent = () => {
   const tableRef = React.useRef<HTMLTableElement>(null);
 
@@ -111,9 +111,10 @@ const CommentComponent = () => {
             type="range"
             min={0}
             max={100}
-            defaultValue={50}
+            defaultValue={selectedCommentVolume}
             onChange={e => {
               let volume = Number(e.target.value);
+              localStorage.setItem("selectedCommentVolume", volume.toString());
 
               if (volume == 0) {
                 commentVolume = volume;
@@ -129,7 +130,9 @@ const CommentComponent = () => {
             type="checkbox"
             onChange={() => {
               isCommenterVoice = !isCommenterVoice;
+              localStorage.setItem("isCommenterVoice", isCommenterVoice.toString());
             }}
+            defaultChecked={isCommenterVoice}
           />
         </div>
         <div>
@@ -138,15 +141,21 @@ const CommentComponent = () => {
             type="checkbox"
             onChange={() => {
               isCommenterDisp = !isCommenterDisp;
+              localStorage.setItem("isCommenterDisp", isCommenterDisp.toString());
               if (tableRef.current) tableRef.current.setAttribute("class", `${style.table} ${isCommenterDisp ? style.displyUserName : style.hiddenUserName}`);
             }}
+            defaultChecked={isCommenterDisp}
           />
         </div>
         <div>
           <span>新しいコメントを追う</span>
           <input
             type="checkbox"
-            onChange={() => isNewCommentDisp = !isNewCommentDisp}
+            onChange={() => {
+              isNewCommentDisp = !isNewCommentDisp;
+              localStorage.setItem("isNewCommentDisp", isNewCommentDisp.toString());
+            }}
+            defaultChecked={isNewCommentDisp}
           />
         </div>
       </div>

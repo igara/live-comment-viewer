@@ -3,8 +3,12 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 
 const IndexComponent = () => {
-  const [youtubeURL, setYoutubeURL] = React.useState("");
-  const [niconicoURL, setNiconicoURL] = React.useState("");
+  const savedYoutubeURL = localStorage.getItem("youtubeURL");
+  const savedNiconicoURL = localStorage.getItem("niconicoURL");
+  const savedTwitchURL = localStorage.getItem("twitchURL");
+  const [youtubeURL, setYoutubeURL] = React.useState(savedYoutubeURL || "");
+  const [niconicoURL, setNiconicoURL] = React.useState(savedNiconicoURL || "");
+  const [twitchURL, setTwitchURL] = React.useState(savedTwitchURL || "");
 
   const backgroundColors = [
     { name: "透明", value: "rgba(0, 0, 0, 0)" },
@@ -33,11 +37,38 @@ const IndexComponent = () => {
       <h1>live-comment-viewer</h1>
       <hr />
       <h2>コメビュー</h2>
-      <input onChange={e => setYoutubeURL(e.target.value)} placeholder="YoutubeのコメビューのURL" />
+      <input
+        onChange={e => {
+          const url = e.target.value;
+          setYoutubeURL(url);
+          localStorage.setItem("youtubeURL", url);
+        }}
+        placeholder="YoutubeのコメビューのURL"
+        defaultValue={youtubeURL}
+      />
       <button onClick={() => electron.ipcRenderer.send("openYoutubeCommentView", youtubeURL)}>開く</button>
       <br />
-      <input onChange={e => setNiconicoURL(e.target.value)} placeholder="ニコニコのコメビューのURL" />
+      <input
+        onChange={e => {
+          const url = e.target.value;
+          setNiconicoURL(url);
+          localStorage.setItem("niconicoURL", url);
+        }}
+        placeholder="ニコニコのコメビューのURL"
+        defaultValue={niconicoURL}
+      />
       <button onClick={() => electron.ipcRenderer.send("openNiconicoCommentView", niconicoURL)}>開く</button>
+      <br />
+      <input
+        onChange={e => {
+          const url = e.target.value;
+          setTwitchURL(url);
+          localStorage.setItem("twitchURL", url);
+        }}
+        placeholder="TwitchのコメビューのURL"
+        defaultValue={twitchURL}
+      />
+      <button onClick={() => electron.ipcRenderer.send("openTwitchCommentView", twitchURL)}>開く</button>
       <hr />
       <h2>VRM Viewer</h2>
       <div>

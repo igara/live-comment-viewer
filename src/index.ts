@@ -4,6 +4,7 @@ import "./pages/index/index.html";
 import "./pages/comment/index.html";
 import "./pages/comment/youtube.png";
 import "./pages/comment/niconico.png";
+import "./pages/comment/twitch.png";
 import "./pages/vrm/igarashi.vrm";
 import "./pages/vrm/index.html";
 
@@ -183,6 +184,68 @@ executeJavaScript();`,
 
   niconicoCommentViewWindow.on("closed", () => {
     niconicoCommentViewWindow = null;
+  });
+});
+
+let twitchCommentViewWindow: electron.BrowserWindow | null;
+electron.ipcMain.on("openTwitchCommentView", async (_, url) => {
+  await createCommentView();
+
+  twitchCommentViewWindow = new electron.BrowserWindow({
+    x: 0,
+    y: 0,
+    width: 300,
+    height: 300,
+    alwaysOnTop: true,
+    webPreferences: {
+      nodeIntegration: true,
+    },
+  });
+
+  twitchCommentViewWindow.loadURL(url);
+
+  twitchCommentViewWindow.webContents.on("did-finish-load", async () => {
+    if (twitchCommentViewWindow) {
+      const executeJavaScript = () => {
+        const { ipcRenderer } = window.require("electron");
+
+        const commentElement = document.querySelector(".chat-scrollable-area__message-container") as HTMLElement;
+        new MutationObserver(records => {
+          records.forEach(record => {
+            Array.from(record.addedNodes).forEach(node => {
+              const element = node as any;
+              if (!element.querySelector) return;
+
+              const nameElement = element.querySelector(".chat-line__username") as HTMLElement;
+              const messageElement = element.querySelector(".text-fragment") as HTMLElement;
+
+              if (nameElement && messageElement) {
+                ipcRenderer.send("addComment", {
+                  sndImage: "twitch.png",
+                  userImage: "",
+                  userName: nameElement.textContent,
+                  message: messageElement.textContent
+                });
+              }
+            });
+          });
+        }).observe(commentElement, {
+          attributes: true,
+          childList: true,
+          subtree: true
+        });
+      };
+      await twitchCommentViewWindow.webContents.executeJavaScript(
+        `
+var executeJavaScript = ${executeJavaScript.toString()};
+executeJavaScript();`,
+        true,
+      );
+    }
+  });
+
+  twitchCommentViewWindow.on("closed", () => {
+    twitchCommentViewWindow = null;
   });
 });
 
