@@ -84,7 +84,7 @@ electron.ipcMain.on("openYoutubeCommentView", async (_, url) => {
         const { ipcRenderer } = window.require("electron");
 
         const commentElement = document.querySelector(
-          "yt-live-chat-item-list-renderer",
+          "#item-offset",
         ) as HTMLElement;
         new MutationObserver(records => {
           records.forEach(record => {
