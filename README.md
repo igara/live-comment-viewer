@@ -7,5 +7,6 @@ npm install
 
 npm run watch
 
-npm run package
+npm run package:mac
+npm run package:win
 ```

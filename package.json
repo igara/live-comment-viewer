@@ -6,7 +6,8 @@
     "lint": "eslint . --ext .ts",
     "watch": "webpack --watch",
     "start": "electron .",
-    "package": "electron-packager . live-comment-viewer --platform=darwin --arch=x64 --electronVersion=8.2.0 --overwrite",
+    "package:mac": "electron-packager . live-comment-viewer --platform=darwin --arch=x64 --electronVersion=8.2.0 --overwrite",
+    "package:win": "electron-packager . live-comment-viewer --platform=win32 --arch=x64 --electronVersion=8.2.0 --overwrite",
     "clean:all": "rm -rf node_modules live-comment-viewer-darwin-x64 dist"
   },
   "main": "dist/index.js",

@@ -2,6 +2,7 @@
 node_modules
 dist
 live-comment-viewer-darwin-x64
+live-comment-viewer-win32-x64
 
 # local env files
 .env.local
