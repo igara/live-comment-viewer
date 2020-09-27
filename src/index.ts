@@ -50,6 +50,7 @@ const createCommentView = async() => {
       height: 900,
       alwaysOnTop: true,
       transparent: true,
+      frame: false,
       webPreferences: {
         nodeIntegration: true,
       },
@@ -265,6 +266,7 @@ electron.ipcMain.on(
       height: 240,
       alwaysOnTop: true,
       transparent: true,
+      frame: false,
       webPreferences: {
         nodeIntegration: true,
       },
@@ -296,6 +298,7 @@ electron.ipcMain.on(
       height: 600,
       alwaysOnTop: true,
       transparent: true,
+      frame: false,
       webPreferences: {
         nodeIntegration: true,
       },
