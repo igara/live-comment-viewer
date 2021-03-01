@@ -17,7 +17,7 @@
     "@tensorflow/tfjs": "1.7.4",
     "react": "16.13.1",
     "react-dom": "16.13.1",
-    "three": "0.118.3"
+    "three": "0.125.0"
   },
   "devDependencies": {
     "@types/react": "16.9.32",
